@@ -1,14 +1,12 @@
 package com.orodent.azdora.app;
 
 
-import com.orodent.azdora.core.components.AppHeader;
-import com.orodent.azdora.core.database.model.Ota;
 import com.orodent.azdora.feature.reservation.controller.ReservationMainController;
 import com.orodent.azdora.feature.reservation.view.ReservationMainView;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.util.List;
 import java.util.Objects;
 
 
@@ -48,9 +46,7 @@ public class AppController {
 
     public void showHome() {
         ReservationMainView view = new ReservationMainView();
-
-
-        new ReservationMainController(view, app.getGuestRepo(), app.getReservationRepo(), app.OtaRepo());
+        new ReservationMainController(view, app.getGuestRepo(), app.getReservationRepo(), app.OtaRepo(), app.getTransactionManager());
       //  configureHeader(view.getHeader());
 
         stage.setScene(createSceneWithCSS(view));
@@ -60,13 +56,10 @@ public class AppController {
     /*
     Creando le Scenes con questo metodo vengono collegate al CSS che può essere scritto tutto in un unico file.
      */
-    private Scene createSceneWithCSS(Object root) {
-        Scene scene = new Scene((javafx.scene.Parent) root, 900, 700);
+    private Scene createSceneWithCSS(Parent root) {
+        Scene scene = new Scene(root, 900, 700);
         scene.getStylesheets().add(cssPath);
         return scene;
-    }
-
-    private void configureHeader(AppHeader header) {
     }
 
     public void shutdown() {

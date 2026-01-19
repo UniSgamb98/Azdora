@@ -1,267 +1,160 @@
 package com.orodent.azdora.feature.reservation.controller;
 
-import com.orodent.azdora.app.FileService;
-import com.orodent.azdora.core.database.model.Guest;
+import com.orodent.azdora.core.database.TransactionManager;
 import com.orodent.azdora.core.database.model.Ota;
-import com.orodent.azdora.core.database.model.Reservation;
 import com.orodent.azdora.core.database.repository.GuestRepository;
 import com.orodent.azdora.core.database.repository.OtaRepository;
 import com.orodent.azdora.core.database.repository.ReservationRepository;
-import com.orodent.azdora.feature.reservation.model.ReservationRow;
+import com.orodent.azdora.feature.reservation.ui.ReservationRow;
+import com.orodent.azdora.feature.reservation.service.ReservationService;
+import com.orodent.azdora.feature.reservation.service.ReservationServiceImpl;
+import com.orodent.azdora.feature.reservation.service.dto.CreateReservationCommand;
+import com.orodent.azdora.feature.reservation.service.dto.ReservationRowData;
 import com.orodent.azdora.feature.reservation.view.ReservationMainView;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.control.Alert;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Locale;
 
 public class ReservationMainController {
+
     private final ReservationMainView view;
-    private final GuestRepository guestRepo;
-    private final ReservationRepository reservationRepo;
-    private final OtaRepository otaRepo;
+
+    private final ReservationService service;
+    private final ReservationTableBinder tableBinder;
+
     private final ObservableList<ReservationRow> rows = FXCollections.observableArrayList();
 
-
-    public ReservationMainController(ReservationMainView view, GuestRepository guestRepo, ReservationRepository reservationRepo, OtaRepository otaRepo) {
+    public ReservationMainController(
+            ReservationMainView view,
+            GuestRepository guestRepo,
+            ReservationRepository reservationRepo,
+            OtaRepository otaRepo,
+            TransactionManager tx
+    ) {
         this.view = view;
-        this.guestRepo = guestRepo;
-        this.reservationRepo = reservationRepo;
-        this.otaRepo = otaRepo;
+        this.service = new ReservationServiceImpl(guestRepo, reservationRepo, otaRepo, tx);
+        this.tableBinder = new ReservationTableBinder(service, this::showError);
 
-        initTable();
-        initForm();
-        loadReservations();
-
-        view.getFormPane().getSaveButton().setOnAction( e -> saveReservation());
+        init();
     }
 
-    private void initForm() {
-        List<Ota> otaList = otaRepo.findAll();
-        if (otaList.isEmpty()) {
-            otaList = FileService.loadProducts();
-        }
-        view.getFormPane().getOtaBox().getItems().addAll(otaList);
+    private void init() {
+        // Tabella
+        tableBinder.bind(view.getTable());
+        view.getTable().setItems(rows);
+
+        // Combo OTA
+        List<Ota> otas = service.loadOtas();
+        view.getFormPane().getOtaBox().setItems(FXCollections.observableArrayList(otas));
+
+        // Bottone salva
+        view.getFormPane().getSaveButton().setOnAction(e -> saveReservation());
+
+        // Dati iniziali
+        reloadTable();
     }
 
-    private void initTable() {
-        var table = view.getTable();
-        table.setEditable(true);
-
-        TableColumn<ReservationRow, String> guestCol =
-                new TableColumn<>("Cliente");
-        guestCol.setCellValueFactory(d -> d.getValue().guestProperty());
-
-        TableColumn<ReservationRow, String> otaCol =
-                new TableColumn<>("OTA");
-        otaCol.setCellValueFactory(d -> d.getValue().otaProperty());
-
-        TableColumn<ReservationRow, LocalDate> prenotCol =
-                new TableColumn<>("Prenotato il");
-        prenotCol.setCellValueFactory(d -> d.getValue().prenotProperty());
-
-        TableColumn<ReservationRow, String> provenanceCol =
-                new TableColumn<>("Provenienza");
-        provenanceCol.setCellValueFactory(d -> d.getValue().provenanceProperty());
-        provenanceCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        provenanceCol.setOnEditCommit(event -> {
-            ReservationRow row = event.getRowValue();
-            String newValue = event.getNewValue();
-
-            row.setProvenance(newValue);
-
-            reservationRepo.updateProvenance(row.getId(), newValue);
-        });
-
-
-        TableColumn<ReservationRow, Long> nightsCol =
-                new TableColumn<>("notti");
-        nightsCol.setCellValueFactory(d -> d.getValue().nightsCountProperty().asObject());
-
-        TableColumn<ReservationRow, LocalDate> inCol =
-                new TableColumn<>("Check-in");
-        inCol.setCellValueFactory(d -> d.getValue().checkInProperty());
-
-        TableColumn<ReservationRow, LocalDate> outCol =
-                new TableColumn<>("Check-out");
-        outCol.setCellValueFactory(d -> d.getValue().checkOutProperty());
-
-        TableColumn<ReservationRow, Integer> adultGuestsCol =
-                new TableColumn<>("Adulti");
-        adultGuestsCol.setCellValueFactory(d -> d.getValue().adultGuestsProperty().asObject());
-
-        TableColumn<ReservationRow, Integer> childGuestsCol =
-                new TableColumn<>("Bambini");
-        childGuestsCol.setCellValueFactory(d -> d.getValue().childGuestsProperty().asObject());
-
-        TableColumn<ReservationRow, BigDecimal> amountCol =
-                new TableColumn<>("Fatturato");
-        amountCol.setCellValueFactory(d -> d.getValue().amountProperty());
-        NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.ITALY);
-        amountCol.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(BigDecimal value, boolean empty) {
-                super.updateItem(value, empty);
-                setText(empty || value == null ? null : euro.format(value));
-            }
-        });
-
-
-        table.getColumns().setAll(
-                guestCol, otaCol, provenanceCol, prenotCol, inCol, outCol, nightsCol, adultGuestsCol, childGuestsCol, amountCol
+    private void reloadTable() {
+        rows.setAll(
+                service.loadReservationRows()
+                        .stream()
+                        .map(this::toRow)
+                        .toList()
         );
-
-        table.setItems(rows);
     }
 
+    private ReservationRow toRow(ReservationRowData d) {
+        return new ReservationRow(
+                d.id(),
+                d.guestFullName(),
+                d.otaName(),
+                d.provenance(),
+                d.createdAt(),
+                d.checkIn(),
+                d.checkOut(),
+                d.nights(),
+                d.adultGuests(),
+                d.childGuests(),
+                d.totalAmount()
+        );
+    }
 
     private void saveReservation() {
-
         var form = view.getFormPane();
 
-        // --- 1. LETTURA DATI ---
-
-        String guestText = form.getGuestField().getText();
-        Ota ota = form.getOtaBox().getValue();
-        var checkIn = form.getCheckInPicker().getValue();
-        var checkOut = form.getCheckOutPicker().getValue();
-        String adultGuestsCountText = form.getAdultGuestsCountField().getText();
-        String childGuestCountText = form.getChildGuestsCountField().getText();
-        String notes = form.getNotesArea().getText();
-        String amountText = form.getAmount().getText();
-        String provenance = form.getProvenanceField().getText();
-        var createdAt = form.getCreatedAtPicker().getValue();
-        long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
-
-        // --- 2. VALIDAZIONE BASE ---
-
-        if (guestText == null || guestText.isBlank()) {
-            showError("Cliente mancante");
-            return;
-        }
-
-        if (ota == null) {
-            showError("OTA non selezionata");
-            return;
-        }
-
-        if (checkOut == null || !checkOut.isAfter(checkIn)) {
-            showError("Date non valide");
-            return;
-        }
-
-        int adultGuestsCount;
         try {
-            adultGuestsCount = Integer.parseInt(adultGuestsCountText);
-            if (adultGuestsCount <= 0) throw new NumberFormatException();
-        } catch (NumberFormatException e) {
-            showError("Numero ospiti non valido");
-            return;
+            String guestText = form.getGuestField().getText();
+            Ota ota = form.getOtaBox().getValue();
+            LocalDate checkIn = form.getCheckInPicker().getValue();
+            LocalDate checkOut = form.getCheckOutPicker().getValue();
+            LocalDate createdAt = form.getCreatedAtPicker().getValue();
+
+            String adultGuestsText = form.getAdultGuestsCountField().getText();
+            String childGuestsText = form.getChildGuestsCountField().getText();
+            String provenance = form.getProvenanceField().getText();
+            String notes = form.getNotesArea().getText();
+            String amountText = form.getAmount().getText();
+
+            int adultGuests = parseIntStrict(adultGuestsText, "Numero adulti non valido", true);
+            int childGuests = parseIntStrict(childGuestsText, "Numero bambini non valido", false);
+            BigDecimal amount = parseBigDecimal(amountText, "Importo non valido");
+
+            long otaId = (ota != null && ota.id() != null) ? ota.id() : 0L;
+
+            CreateReservationCommand cmd = new CreateReservationCommand(
+                    guestText,
+                    otaId,
+                    provenance,
+                    createdAt,
+                    checkIn,
+                    checkOut,
+                    adultGuests,
+                    childGuests,
+                    amount,
+                    notes
+            );
+
+            service.createReservation(cmd);
+
+            reloadTable();
+            view.getFormPane().clear();
+
+
+        } catch (IllegalArgumentException ex) {
+            showError(ex.getMessage());
+        } catch (Exception ex) {
+            showError("Errore durante il salvataggio: " + ex.getMessage());
         }
-
-        int childGuestsCount;
-        try {
-            childGuestsCount = Integer.parseInt(childGuestCountText);
-            if (childGuestsCount < 0) throw new NumberFormatException();
-        } catch (NumberFormatException e) {
-            showError("Numero ospiti non valido");
-            return;
-        }
-
-        BigDecimal amount;
-        try {
-            amount = new BigDecimal(amountText);
-            if (amount.compareTo(BigDecimal.ZERO) < 0) {
-                throw new NumberFormatException();
-            }
-        } catch (Exception e) {
-            showError("Importo non valido");
-            return;
-        }
-
-        // --- 3. PARSE NOME / COGNOME ---
-
-        String[] parts = guestText.trim().split("\\s+", 2);
-        String firstName = parts[0];
-        String lastName = parts.length > 1 ? parts[1] : "";
-
-        // --- 4. INSERT GUEST ---
-
-        var guest = guestRepo.insert(
-                new Guest(
-                        null,
-                        firstName,
-                        lastName,
-                        null
-                )
-        );
-
-        // --- 5. INSERT RESERVATION ---
-
-        reservationRepo.insert(
-                new Reservation(
-                        null,
-                        ota.id(),
-                        guest.id(),
-                        provenance,
-                        checkIn,
-                        checkOut,
-                        nights,
-                        adultGuestsCount,
-                        childGuestsCount,
-                        amount,
-                        createdAt,
-                        notes
-                )
-        );
-
-        // --- 6. REFRESH TABLE ---
-
-        loadReservations();
-
-        // --- 7. RESET FORM (OPZIONALE MA CONSIGLIATO) ---
-
-        form.getGuestField().clear();
-        form.getCheckInPicker().setValue(null);
-        form.getCheckOutPicker().setValue(null);
-        form.getAdultGuestsCountField().clear();
-        form.getNotesArea().clear();
-        form.getOtaBox().setValue(null);
     }
 
-    private void loadReservations() {
-        rows.clear();
+    private int parseIntStrict(String text, String errorMessage, boolean mustBePositive) {
+        if (text == null) throw new IllegalArgumentException(errorMessage);
+        try {
+            int v = Integer.parseInt(text.trim());
+            if (mustBePositive && v <= 0) throw new IllegalArgumentException(errorMessage);
+            if (!mustBePositive && v < 0) throw new IllegalArgumentException(errorMessage);
+            return v;
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
 
-        for (Reservation r : reservationRepo.findAll()) {
-
-            Guest g = guestRepo.findById(r.guestId());
-            Ota o = otaRepo.findById(r.otaId());
-
-            rows.add(new ReservationRow(
-                    r.id(),
-                    g.firstName() + " " + g.lastName(),
-                    o.name(),
-                    r.provenance(),
-                    r.createdAt(),
-                    r.checkIn(),
-                    r.checkOut(),
-                    r.nights(),
-                    r.adultGuestsCount(),
-                    r.childGuestsCount(),
-                    r.totalAmount()
-            ));
+    private BigDecimal parseBigDecimal(String text, String errorMessage) {
+        if (text == null) throw new IllegalArgumentException(errorMessage);
+        try {
+            BigDecimal v = new BigDecimal(text.trim());
+            if (v.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException(errorMessage);
+            return v;
+        } catch (Exception ex) {
+            throw new IllegalArgumentException(errorMessage);
         }
     }
 
     private void showError(String message) {
-        // per ora semplice
-        System.err.println(message);
+        new Alert(Alert.AlertType.ERROR, message).showAndWait();
     }
 }

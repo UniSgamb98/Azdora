@@ -1,9 +1,10 @@
-package com.orodent.azdora.feature.reservation.model;
+package com.orodent.azdora.feature.reservation.ui;
 
 import javafx.beans.property.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class ReservationRow {
 
@@ -49,7 +50,6 @@ public class ReservationRow {
     }
 
     public long getId() { return id.get(); }
-    public LongProperty idProperty() { return id; }
     public StringProperty guestProperty() { return guestName; }
     public StringProperty otaProperty() { return otaName; }
     public StringProperty provenanceProperty() { return provenance; }
@@ -61,6 +61,20 @@ public class ReservationRow {
     public IntegerProperty childGuestsProperty() { return childGuestsCount; }
     public ObjectProperty<BigDecimal> amountProperty() { return amount; }
 
-    public void setProvenance(String provenance) { provenanceProperty().set(provenance); }
+    public void setProvenance(String newProvenance) { provenance.set(newProvenance); }
+    public void setAdultGuestsCount(int newAdultGuestsCount) { adultGuestsCount.set(newAdultGuestsCount); }
+    public void setChildGuestsCount(int newChildGuestsCount) { childGuestsCount.set(newChildGuestsCount); }
+    public void setAmount(BigDecimal newAmount) { amount.set(newAmount); }
+    public void setCheckIn(LocalDate newCheckIn) {
+        checkInProperty().set(newCheckIn);
+        nightsCount.set(ChronoUnit.DAYS.between(newCheckIn, checkOut.get()));
+    }
+    public void setCheckOut(LocalDate newCheckOut) {
+        checkOut.set(newCheckOut);
+        nightsCount.set(ChronoUnit.DAYS.between(checkIn.get(), newCheckOut));
+    }
 
+    public LocalDate getCheckOut() { return checkOut.get(); }
+    public LocalDate getCheckIn() { return checkIn.get(); }
+    public long getNightsCount() { return nightsCount.get(); }
 }

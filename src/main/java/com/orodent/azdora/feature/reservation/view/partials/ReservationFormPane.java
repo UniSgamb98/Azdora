@@ -62,6 +62,18 @@ public class ReservationFormPane extends GridPane {
         add(actions, 2, r);
     }
 
+    public void clear() {
+        guestField.clear();
+        otaBox.setValue(null);
+        checkInPicker.setValue(null);
+        checkOutPicker.setValue(null);
+        createdAtPicker.setValue(null);
+        adultGuestsCountField.clear();
+        childGuestsCountField.clear();
+        provenanceField.clear();
+        amount.clear();
+        notesArea.clear();
+    }
 
     // --- GETTERS ---
     public TextField getGuestField() {

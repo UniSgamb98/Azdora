@@ -3,9 +3,11 @@ package com.orodent.azdora.core.database.implementation;
 import com.orodent.azdora.core.database.model.Reservation;
 import com.orodent.azdora.core.database.repository.ReservationRepository;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,6 +76,92 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 
         } catch (Exception e) {
             throw new RuntimeException("Error updating provenance for reservation id=" + reservationId, e);
+        }
+    }
+
+    @Override
+    public void updateAdultGuestsCount(long reservationId, int adultGuestsCount) {
+
+        String sql = """
+        UPDATE reservation
+        SET adult_guests_count = ?
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, adultGuestsCount);
+            ps.setLong(2, reservationId);
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating adultGuestsCount for reservation id=" + reservationId, e);
+        }
+    }
+
+    @Override
+    public void updateChildGuestsCount(long reservationId, int childGuestsCount) {
+
+        String sql = """
+        UPDATE reservation
+        SET child_guests_count = ?
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, childGuestsCount);
+            ps.setLong(2, reservationId);
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating childGuestsCount for reservation id=" + reservationId, e);
+        }
+    }
+
+    @Override
+    public void updateAmount(long reservationId, BigDecimal amount) {
+
+        String sql = """
+        UPDATE reservation
+        SET total_amount = ?
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setBigDecimal(1, amount);
+            ps.setLong(2, reservationId);
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating amount for reservation id=" + reservationId, e);
+        }
+    }
+
+    @Override
+    public void updateDatesAndNights(long reservationId, LocalDate checkIn, LocalDate checkOut, long nights) {
+
+        String sql = """
+        UPDATE reservation
+        SET check_in = ?, check_out = ?, nights = ?
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setDate(1, java.sql.Date.valueOf(checkIn));
+            ps.setDate(2, java.sql.Date.valueOf(checkOut));
+            ps.setLong(3, nights);
+            ps.setLong(4, reservationId);
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating dates and nights for reservation id=" + reservationId, e);
         }
     }
 
