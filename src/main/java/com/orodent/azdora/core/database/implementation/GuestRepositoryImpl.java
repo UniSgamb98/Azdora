@@ -4,6 +4,8 @@ import com.orodent.azdora.core.database.model.Guest;
 import com.orodent.azdora.core.database.repository.GuestRepository;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuestRepositoryImpl implements GuestRepository {
 
@@ -51,6 +53,55 @@ public class GuestRepositoryImpl implements GuestRepository {
     }
 
     @Override
+    public void updateName(long id, String firstName, String lastName) {
+
+        String sql = """
+        UPDATE guest
+        SET first_name = ?, last_name = ?
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, firstName);
+            ps.setString(2, lastName);
+            ps.setLong(3, id);
+
+            int updated = ps.executeUpdate();
+            if (updated == 0) {
+                throw new RuntimeException("No guest found with id " + id);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating guest name id=" + id, e);
+        }
+    }
+
+    @Override
+    public void deleteById(long id) {
+
+        String sql = """
+        DELETE FROM guest
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, id);
+
+            int deleted = ps.executeUpdate();
+            if (deleted == 0) {
+                // puoi anche scegliere di NON lanciare eccezione e fare "no-op"
+                throw new RuntimeException("No guest found with id " + id);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting guest id=" + id, e);
+        }
+    }
+
+
+    @Override
     public Guest findById(long id) {
 
         String sql = """
@@ -81,4 +132,32 @@ public class GuestRepositoryImpl implements GuestRepository {
         return null; // coerente col resto del progetto
     }
 
+    @Override
+    public List<Guest> findAll() {
+
+        List<Guest> guests = new ArrayList<>();
+
+        String sql = """
+        SELECT id, first_name, last_name, notes
+        FROM guest
+        ORDER BY last_name, first_name
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                guests.add(new Guest(
+                        rs.getLong("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("notes")
+                ));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error loading guests", e);
+        }
+        return guests;
+    }
 }

@@ -5,6 +5,8 @@ import com.orodent.azdora.core.database.model.Ota;
 import com.orodent.azdora.core.database.repository.GuestRepository;
 import com.orodent.azdora.core.database.repository.OtaRepository;
 import com.orodent.azdora.core.database.repository.ReservationRepository;
+import com.orodent.azdora.feature.reservation.service.GuestService;
+import com.orodent.azdora.feature.reservation.service.GuestServiceImpl;
 import com.orodent.azdora.feature.reservation.ui.ReservationRow;
 import com.orodent.azdora.feature.reservation.service.ReservationService;
 import com.orodent.azdora.feature.reservation.service.ReservationServiceImpl;
@@ -25,6 +27,7 @@ public class ReservationMainController {
 
     private final ReservationService service;
     private final ReservationTableBinder tableBinder;
+    private final GuestSearchController guestSearchController;
 
     private final ObservableList<ReservationRow> rows = FXCollections.observableArrayList();
 
@@ -38,6 +41,8 @@ public class ReservationMainController {
         this.view = view;
         this.service = new ReservationServiceImpl(guestRepo, reservationRepo, otaRepo, tx);
         this.tableBinder = new ReservationTableBinder(service, this::showError);
+        GuestService guestService = new GuestServiceImpl(guestRepo);
+        this.guestSearchController = new GuestSearchController(view.getGuestSearchPane(), guestService);
 
         init();
     }
@@ -46,6 +51,11 @@ public class ReservationMainController {
         // Tabella
         tableBinder.bind(view.getTable());
         view.getTable().setItems(rows);
+
+        // GuestSearchField
+        guestSearchController.setOnGuestSelected(g -> {
+            view.getFormPane().getGuestField().setText(g.firstName() + " " + g.lastName());
+        });
 
         // Combo OTA
         List<Ota> otas = service.loadOtas();

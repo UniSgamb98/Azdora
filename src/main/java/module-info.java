@@ -11,7 +11,10 @@ module com.orodent.azdora {
     exports com.orodent.azdora.core.database.model;
     exports com.orodent.azdora.core.database.repository;
     exports com.orodent.azdora.feature.reservation.view;
+    exports com.orodent.azdora.feature.reservation.view.partials;
     exports com.orodent.azdora.feature.reservation.controller;
+    exports com.orodent.azdora.feature.reservation.controller.table;
+    exports com.orodent.azdora.feature.reservation.service;
     exports com.orodent.azdora.feature.reservation.ui;
 
     opens com.orodent.azdora.core.database.model to com.google.gson;
