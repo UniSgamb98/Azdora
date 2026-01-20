@@ -1,6 +1,7 @@
 package com.orodent.azdora.feature.reservation.service;
 
 import com.orodent.azdora.core.database.TransactionManager;
+import com.orodent.azdora.core.database.exception.ValidationException;
 import com.orodent.azdora.core.database.model.Guest;
 import com.orodent.azdora.core.database.model.Ota;
 import com.orodent.azdora.core.database.model.Reservation;

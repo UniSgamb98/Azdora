@@ -1,4 +1,4 @@
-package com.orodent.azdora.feature.reservation.service;
+package com.orodent.azdora.core.database.exception;
 
 public class ValidationException extends RuntimeException {
 

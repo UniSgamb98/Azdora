@@ -2,14 +2,17 @@ package com.orodent.azdora.feature.reservation.controller;
 
 import com.orodent.azdora.core.database.TransactionManager;
 import com.orodent.azdora.core.database.model.Ota;
+import com.orodent.azdora.core.database.repository.GuestContactRepository;
 import com.orodent.azdora.core.database.repository.GuestRepository;
 import com.orodent.azdora.core.database.repository.OtaRepository;
 import com.orodent.azdora.core.database.repository.ReservationRepository;
-import com.orodent.azdora.feature.reservation.service.GuestService;
-import com.orodent.azdora.feature.reservation.service.GuestServiceImpl;
+import com.orodent.azdora.feature.contact.GuestContactService;
+import com.orodent.azdora.feature.contact.GuestSearchController;
+import com.orodent.azdora.feature.contact.GuestService;
+import com.orodent.azdora.feature.contact.GuestServiceImpl;
+import com.orodent.azdora.feature.reservation.service.*;
+import com.orodent.azdora.feature.reservation.service.dto.GuestContactServiceImpl;
 import com.orodent.azdora.feature.reservation.ui.ReservationRow;
-import com.orodent.azdora.feature.reservation.service.ReservationService;
-import com.orodent.azdora.feature.reservation.service.ReservationServiceImpl;
 import com.orodent.azdora.feature.reservation.service.dto.CreateReservationCommand;
 import com.orodent.azdora.feature.reservation.service.dto.ReservationRowData;
 import com.orodent.azdora.feature.reservation.view.ReservationMainView;
@@ -36,13 +39,15 @@ public class ReservationMainController {
             GuestRepository guestRepo,
             ReservationRepository reservationRepo,
             OtaRepository otaRepo,
+            GuestContactRepository guestContactRepo,
             TransactionManager tx
     ) {
         this.view = view;
         this.service = new ReservationServiceImpl(guestRepo, reservationRepo, otaRepo, tx);
         this.tableBinder = new ReservationTableBinder(service, this::showError);
         GuestService guestService = new GuestServiceImpl(guestRepo);
-        this.guestSearchController = new GuestSearchController(view.getGuestSearchPane(), guestService);
+        GuestContactService guestContactService = new GuestContactServiceImpl(guestContactRepo);
+        this.guestSearchController = new GuestSearchController(view.getGuestSearchPane(), guestService, guestContactService);
 
         init();
     }
@@ -53,9 +58,7 @@ public class ReservationMainController {
         view.getTable().setItems(rows);
 
         // GuestSearchField
-        guestSearchController.setOnGuestSelected(g -> {
-            view.getFormPane().getGuestField().setText(g.firstName() + " " + g.lastName());
-        });
+        guestSearchController.setOnGuestSelected(g -> view.getFormPane().getGuestField().setText(g.firstName() + " " + g.lastName()));
 
         // Combo OTA
         List<Ota> otas = service.loadOtas();
@@ -111,7 +114,7 @@ public class ReservationMainController {
 
             int adultGuests = parseIntStrict(adultGuestsText, "Numero adulti non valido", true);
             int childGuests = parseIntStrict(childGuestsText, "Numero bambini non valido", false);
-            BigDecimal amount = parseBigDecimal(amountText, "Importo non valido");
+            BigDecimal amount = parseBigDecimal(amountText);
 
             long otaId = (ota != null && ota.id() != null) ? ota.id() : 0L;
 
@@ -153,14 +156,14 @@ public class ReservationMainController {
         }
     }
 
-    private BigDecimal parseBigDecimal(String text, String errorMessage) {
-        if (text == null) throw new IllegalArgumentException(errorMessage);
+    private BigDecimal parseBigDecimal(String text) {
+        if (text == null) throw new IllegalArgumentException("Importo non valido");
         try {
             BigDecimal v = new BigDecimal(text.trim());
-            if (v.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException(errorMessage);
+            if (v.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Importo non valido");
             return v;
         } catch (Exception ex) {
-            throw new IllegalArgumentException(errorMessage);
+            throw new IllegalArgumentException("Importo non valido");
         }
     }
 

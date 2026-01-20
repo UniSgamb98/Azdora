@@ -9,5 +9,6 @@ public interface GuestRepository {
     Guest findById(long id);
     List<Guest> findAll();
     void updateName(long id, String firstName, String lastName);
+    void updateNotes(long id, String notes);
     void deleteById(long id);
 }

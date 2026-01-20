@@ -1,7 +1,8 @@
-package com.orodent.azdora.feature.reservation.service;
+package com.orodent.azdora.feature.contact;
 
 import com.orodent.azdora.core.database.model.Guest;
 import com.orodent.azdora.core.database.repository.GuestRepository;
+import com.orodent.azdora.core.database.exception.ValidationException;
 
 import java.text.Normalizer;
 import java.util.*;
@@ -50,6 +51,15 @@ public class GuestServiceImpl implements GuestService {
                 .limit(Math.max(1, limit))
                 .map(ScoredGuest::guest)
                 .toList();
+    }
+
+    @Override
+    public void updateNotes(long guestId, String notes) {
+        if (guestId <= 0) {
+            throw new ValidationException("ID guest non valido");
+        }
+        if (notes == null) notes = "";
+        guestRepo.updateNotes(guestId, notes);
     }
 
     @Override

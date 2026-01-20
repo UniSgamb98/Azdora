@@ -76,5 +76,4 @@ public class ReservationRow {
 
     public LocalDate getCheckOut() { return checkOut.get(); }
     public LocalDate getCheckIn() { return checkIn.get(); }
-    public long getNightsCount() { return nightsCount.get(); }
 }

@@ -46,7 +46,7 @@ public class AppController {
 
     public void showHome() {
         ReservationMainView view = new ReservationMainView();
-        new ReservationMainController(view, app.getGuestRepo(), app.getReservationRepo(), app.OtaRepo(), app.getTransactionManager());
+        new ReservationMainController(view, app.getGuestRepo(), app.getReservationRepo(), app.OtaRepo(), app.getGuestContactRepo(), app.getTransactionManager());
       //  configureHeader(view.getHeader());
 
         stage.setScene(createSceneWithCSS(view));

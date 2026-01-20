@@ -53,6 +53,30 @@ public class GuestRepositoryImpl implements GuestRepository {
     }
 
     @Override
+    public void updateNotes(long id, String notes) {
+
+        String sql = """
+        UPDATE guest
+        SET notes = ?
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, notes);
+            ps.setLong(2, id);
+
+            int updated = ps.executeUpdate();
+            if (updated == 0) {
+                throw new RuntimeException("No guest found with id " + id);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating guest notes id=" + id, e);
+        }
+    }
+
+    @Override
     public void updateName(long id, String firstName, String lastName) {
 
         String sql = """

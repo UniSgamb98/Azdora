@@ -1,4 +1,4 @@
-package com.orodent.azdora.feature.reservation.service;
+package com.orodent.azdora.feature.contact;
 
 import com.orodent.azdora.core.database.model.Guest;
 
@@ -19,6 +19,8 @@ public interface GuestService {
      * Primo match (se ti serve per autocomplete).
      */
     Optional<Guest> bestMatch(String query);
+
+    void updateNotes(long guestId, String notes);
 
     // Future-proof: operazioni CRUD
     Guest createGuest(String firstName, String lastName);

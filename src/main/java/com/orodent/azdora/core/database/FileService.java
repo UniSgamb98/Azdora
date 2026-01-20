@@ -5,8 +5,6 @@ import com.google.gson.reflect.TypeToken;
 import com.orodent.azdora.core.database.model.Ota;
 
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,14 +18,6 @@ public class FileService {
     questa classe si occupa di caricare e salvare i dati in file Json e non chiedetemi nulla perchè li ho copiati
     pari paro da internet.
      */
-
-    public static void saveProducts(List<Ota> products) {
-        try (FileWriter writer = new FileWriter(OTA_FILE_PATH.toFile())) {
-            gson.toJson(products, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     public static List<Ota> loadOtas() {
         try {
