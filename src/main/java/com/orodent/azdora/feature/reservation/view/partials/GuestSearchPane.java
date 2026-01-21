@@ -46,8 +46,8 @@ public class GuestSearchPane extends VBox {
 
         getChildren().addAll(
                 title,
-                guestList,
                 searchField,
+                guestList,
                 notesLabel,
                 notesArea,
                 saveNotesButton,

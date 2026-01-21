@@ -9,6 +9,8 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -53,16 +55,20 @@ public class GuestSearchController {
         // dati iniziali guest
         guestList.setAll(guestService.search("", 50));
 
+        wireFocusReset();
+
         // selezione guest -> carica notes + contatti
         view.getGuestList().getSelectionModel().selectedItemProperty().addListener((obs, old, g) -> {
             if (g == null) {
                 setDetailsVisible(false);
+                setGuestListVisible(true);
                 view.getNotesArea().clear();
                 contactRows.clear();
                 return;
             }
 
             setDetailsVisible(true);
+            setGuestListVisible(false);
             view.getNotesArea().setText(g.notes() == null ? "" : g.notes());
             loadContacts(g.id());
 
@@ -84,6 +90,8 @@ public class GuestSearchController {
         // ricerca + autocomplete (logica tua già presente) -> qui mantieni la tua, ma al posto di filtro locale:
         view.getSearchField().textProperty().addListener((obs, oldText, newText) -> {
             guestList.setAll(guestService.search(newText, 50));
+            setDetailsVisible(false);
+            setGuestListVisible(true);
 
             Optional<Guest> best = guestService.bestMatch(newText);
             best.ifPresent(b -> {
@@ -123,6 +131,7 @@ public class GuestSearchController {
         });
 
         setDetailsVisible(false);
+        setGuestListVisible(true);
     }
 
     private void initContactsTable() {
@@ -189,5 +198,38 @@ public class GuestSearchController {
         view.getAddContactButton().setManaged(visible);
         view.getRemoveContactButton().setVisible(visible);
         view.getRemoveContactButton().setManaged(visible);
+    }
+
+    private void setGuestListVisible(boolean visible) {
+        view.getGuestList().setVisible(visible);
+        view.getGuestList().setManaged(visible);
+    }
+
+    private void wireFocusReset() {
+        view.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) return;
+            newScene.focusOwnerProperty().addListener((focusObs, oldFocus, newFocus) -> {
+                if (newFocus == null || isDescendantOfView(newFocus)) {
+                    return;
+                }
+                view.getGuestList().getSelectionModel().clearSelection();
+                setDetailsVisible(false);
+                setGuestListVisible(true);
+            });
+        });
+    }
+
+    private boolean isDescendantOfView(Node node) {
+        if (node == view) {
+            return true;
+        }
+        Parent parent = node.getParent();
+        while (parent != null) {
+            if (parent == view) {
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
     }
 }
