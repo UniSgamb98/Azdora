@@ -1,5 +1,6 @@
 package com.orodent.azdora.feature.reservation.view.model;
 
+import com.orodent.azdora.core.database.model.Ota;
 import javafx.beans.property.*;
 
 import java.math.BigDecimal;
@@ -11,7 +12,7 @@ public class ReservationRow {
     private final LongProperty id = new SimpleLongProperty();
 
     private final StringProperty guestName = new SimpleStringProperty();
-    private final StringProperty otaName = new SimpleStringProperty();
+    private final ObjectProperty<Ota> ota = new SimpleObjectProperty<>();
     private final StringProperty provenance = new SimpleStringProperty();
 
     private final ObjectProperty<LocalDate> checkIn = new SimpleObjectProperty<>();
@@ -26,7 +27,7 @@ public class ReservationRow {
     public ReservationRow(
             long id,
             String guestName,
-            String otaName,
+            Ota ota,
             String provenance,
             LocalDate prenot,
             LocalDate checkIn,
@@ -38,7 +39,7 @@ public class ReservationRow {
     ) {
         this.id.set(id);
         this.guestName.set(guestName);
-        this.otaName.set(otaName);
+        this.ota.set(ota);
         this.checkIn.set(checkIn);
         this.checkOut.set(checkOut);
         this.adultGuestsCount.set(adultGuestsCount);
@@ -51,7 +52,7 @@ public class ReservationRow {
 
     public long getId() { return id.get(); }
     public StringProperty guestProperty() { return guestName; }
-    public StringProperty otaProperty() { return otaName; }
+    public ObjectProperty<Ota> otaProperty() { return ota; }
     public StringProperty provenanceProperty() { return provenance; }
     public ObjectProperty<LocalDate> checkInProperty() { return checkIn; }
     public ObjectProperty<LocalDate> checkOutProperty() { return checkOut; }
@@ -62,6 +63,7 @@ public class ReservationRow {
     public ObjectProperty<BigDecimal> amountProperty() { return amount; }
 
     public void setProvenance(String newProvenance) { provenance.set(newProvenance); }
+    public void setOta(Ota newOta) { ota.set(newOta); }
     public void setAdultGuestsCount(int newAdultGuestsCount) { adultGuestsCount.set(newAdultGuestsCount); }
     public void setChildGuestsCount(int newChildGuestsCount) { childGuestsCount.set(newChildGuestsCount); }
     public void setAmount(BigDecimal newAmount) { amount.set(newAmount); }

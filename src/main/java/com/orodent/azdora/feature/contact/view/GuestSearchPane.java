@@ -46,8 +46,8 @@ public class GuestSearchPane extends VBox {
 
         getChildren().addAll(
                 title,
-                guestList,
                 searchField,
+                guestList,
                 notesLabel,
                 notesArea,
                 saveNotesButton,
@@ -61,8 +61,10 @@ public class GuestSearchPane extends VBox {
     public TextField getSearchField() { return searchField; }
 
     public TextArea getNotesArea() { return notesArea; }
+    public Label getNotesLabel() { return notesLabel; }
     public Button getSaveNotesButton() { return saveNotesButton; }
 
+    public Label getContactsLabel() { return contactsLabel; }
     public TableView<GuestContactRow> getContactsTable() { return contactsTable; }
     public Button getAddContactButton() { return addContactButton; }
     public Button getRemoveContactButton() { return removeContactButton; }
