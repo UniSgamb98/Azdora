@@ -57,7 +57,7 @@ public class AppController {
     Creando le Scenes con questo metodo vengono collegate al CSS che può essere scritto tutto in un unico file.
      */
     private Scene createSceneWithCSS(Parent root) {
-        Scene scene = new Scene(root, 900, 700);
+        Scene scene = new Scene(root, 1160, 850);
         scene.getStylesheets().add(cssPath);
         return scene;
     }

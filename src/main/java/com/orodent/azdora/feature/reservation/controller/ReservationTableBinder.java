@@ -202,9 +202,9 @@ public class ReservationTableBinder {
         });
 
         table.getColumns().setAll(
-                guestCol, otaCol, provenanceCol, notesCol, prenotCol,
+                guestCol, otaCol, provenanceCol, prenotCol,
                 inCol, outCol, nightsCol,
-                adultGuestsCol, childGuestsCol, amountCol
+                adultGuestsCol, childGuestsCol, amountCol, notesCol
         );
     }
 }
