@@ -75,6 +75,24 @@ public class ReservationTableBinder {
             }
         });
 
+        TableColumn<ReservationRow, String> notesCol = new TableColumn<>("Note");
+        notesCol.setCellValueFactory(d -> d.getValue().notesProperty());
+        notesCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        notesCol.setOnEditCommit(event -> {
+            ReservationRow row = event.getRowValue();
+            String oldValue = event.getOldValue();
+            String newValue = event.getNewValue();
+
+            try {
+                row.setNotes(newValue);
+                service.updateNotes(row.getId(), newValue);
+            } catch (Exception ex) {
+                row.setNotes(oldValue);
+                table.refresh();
+                onError.accept(ex.getMessage());
+            }
+        });
+
         TableColumn<ReservationRow, Long> nightsCol = new TableColumn<>("notti");
         nightsCol.setCellValueFactory(d -> d.getValue().nightsCountProperty().asObject());
 
@@ -184,7 +202,7 @@ public class ReservationTableBinder {
         });
 
         table.getColumns().setAll(
-                guestCol, otaCol, provenanceCol, prenotCol,
+                guestCol, otaCol, provenanceCol, notesCol, prenotCol,
                 inCol, outCol, nightsCol,
                 adultGuestsCol, childGuestsCol, amountCol
         );

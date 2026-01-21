@@ -80,6 +80,26 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
+    public void updateNotes(long reservationId, String notes) {
+        String sql = """
+        UPDATE reservation
+        SET notes = ?
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, notes);
+            ps.setLong(2, reservationId);
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating notes for reservation id=" + reservationId, e);
+        }
+    }
+
+    @Override
     public void updateOta(long reservationId, long otaId) {
         String sql = """
         UPDATE reservation

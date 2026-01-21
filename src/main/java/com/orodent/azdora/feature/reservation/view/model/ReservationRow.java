@@ -14,6 +14,7 @@ public class ReservationRow {
     private final StringProperty guestName = new SimpleStringProperty();
     private final ObjectProperty<Ota> ota = new SimpleObjectProperty<>();
     private final StringProperty provenance = new SimpleStringProperty();
+    private final StringProperty notes = new SimpleStringProperty();
 
     private final ObjectProperty<LocalDate> checkIn = new SimpleObjectProperty<>();
     private final ObjectProperty<LocalDate> checkOut = new SimpleObjectProperty<>();
@@ -29,6 +30,7 @@ public class ReservationRow {
             String guestName,
             Ota ota,
             String provenance,
+            String notes,
             LocalDate prenot,
             LocalDate checkIn,
             LocalDate checkOut,
@@ -45,6 +47,7 @@ public class ReservationRow {
         this.adultGuestsCount.set(adultGuestsCount);
         this.amount.set(amount);
         this.provenance.set(provenance);
+        this.notes.set(notes);
         this.prenotatoIl.set(prenot);
         this.nightsCount.set(nights);
         this.childGuestsCount.set(childGuestsCount);
@@ -54,6 +57,7 @@ public class ReservationRow {
     public StringProperty guestProperty() { return guestName; }
     public ObjectProperty<Ota> otaProperty() { return ota; }
     public StringProperty provenanceProperty() { return provenance; }
+    public StringProperty notesProperty() { return notes; }
     public ObjectProperty<LocalDate> checkInProperty() { return checkIn; }
     public ObjectProperty<LocalDate> checkOutProperty() { return checkOut; }
     public LongProperty nightsCountProperty() { return nightsCount; }
@@ -63,6 +67,7 @@ public class ReservationRow {
     public ObjectProperty<BigDecimal> amountProperty() { return amount; }
 
     public void setProvenance(String newProvenance) { provenance.set(newProvenance); }
+    public void setNotes(String newNotes) { notes.set(newNotes); }
     public void setOta(Ota newOta) { ota.set(newOta); }
     public void setAdultGuestsCount(int newAdultGuestsCount) { adultGuestsCount.set(newAdultGuestsCount); }
     public void setChildGuestsCount(int newChildGuestsCount) { childGuestsCount.set(newChildGuestsCount); }

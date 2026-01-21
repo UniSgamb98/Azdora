@@ -10,6 +10,7 @@ public interface ReservationRepository {
     void insert(Reservation reservation);
     List<Reservation> findAll();
     void updateProvenance(long reservationId, String provenance);
+    void updateNotes(long reservationId, String notes);
     void updateOta(long reservationId, long otaId);
     void updateAdultGuestsCount(long id, int newValue);
     void updateChildGuestsCount(long id, int newValue);

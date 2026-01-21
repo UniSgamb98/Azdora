@@ -50,6 +50,7 @@ public class ReservationServiceImpl implements ReservationService {
                     g.firstName() + " " + g.lastName(),
                     o,
                     r.provenance(),
+                    r.notes(),
                     r.createdAt(),
                     r.checkIn(),
                     r.checkOut(),
@@ -115,6 +116,12 @@ public class ReservationServiceImpl implements ReservationService {
     public void updateProvenance(long reservationId, String provenance) {
         if (provenance == null) provenance = "";
         reservationRepo.updateProvenance(reservationId, provenance);
+    }
+
+    @Override
+    public void updateNotes(long reservationId, String notes) {
+        if (notes == null) notes = "";
+        reservationRepo.updateNotes(reservationId, notes);
     }
 
     @Override

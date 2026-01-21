@@ -87,6 +87,7 @@ public class ReservationMainController {
                 d.guestFullName(),
                 d.ota(),
                 d.provenance(),
+                d.notes(),
                 d.createdAt(),
                 d.checkIn(),
                 d.checkOut(),

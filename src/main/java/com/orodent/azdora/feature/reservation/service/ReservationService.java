@@ -21,6 +21,8 @@ public interface ReservationService {
     // update (da tabella editabile)
     void updateProvenance(long reservationId, String provenance);
 
+    void updateNotes(long reservationId, String notes);
+
     void updateOta(long reservationId, Ota ota);
 
     void updateDates(long reservationId, LocalDate checkIn, LocalDate checkOut);

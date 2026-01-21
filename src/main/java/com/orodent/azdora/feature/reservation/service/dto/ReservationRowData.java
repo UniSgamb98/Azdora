@@ -10,6 +10,7 @@ public record ReservationRowData(
         String guestFullName,
         Ota ota,
         String provenance,
+        String notes,
         LocalDate createdAt,
         LocalDate checkIn,
         LocalDate checkOut,
