@@ -1,6 +1,6 @@
 package com.orodent.azdora.feature.reservation.service;
 
-import com.orodent.azdora.core.database.model.Ota;
+import com.orodent.azdora.core.domain.model.Ota;
 import com.orodent.azdora.feature.reservation.service.dto.CreateReservationCommand;
 import com.orodent.azdora.feature.reservation.service.dto.ReservationRowData;
 

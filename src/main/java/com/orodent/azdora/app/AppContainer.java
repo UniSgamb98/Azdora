@@ -1,16 +1,16 @@
 package com.orodent.azdora.app;
 
-import com.orodent.azdora.core.database.Database;
-import com.orodent.azdora.core.database.FileService;
-import com.orodent.azdora.core.database.TransactionManager;
-import com.orodent.azdora.core.database.implementation.GuestContactRepositoryImpl;
-import com.orodent.azdora.core.database.implementation.GuestRepositoryImpl;
-import com.orodent.azdora.core.database.implementation.OtaRepositoryImpl;
-import com.orodent.azdora.core.database.implementation.ReservationRepositoryImpl;
-import com.orodent.azdora.core.database.repository.GuestContactRepository;
-import com.orodent.azdora.core.database.repository.GuestRepository;
-import com.orodent.azdora.core.database.repository.OtaRepository;
-import com.orodent.azdora.core.database.repository.ReservationRepository;
+import com.orodent.azdora.core.persistence.database.Database;
+import com.orodent.azdora.core.persistence.file.FileService;
+import com.orodent.azdora.core.persistence.database.TransactionManager;
+import com.orodent.azdora.core.persistence.repository.impl.GuestContactRepositoryImpl;
+import com.orodent.azdora.core.persistence.repository.impl.GuestRepositoryImpl;
+import com.orodent.azdora.core.persistence.repository.impl.OtaRepositoryImpl;
+import com.orodent.azdora.core.persistence.repository.impl.ReservationRepositoryImpl;
+import com.orodent.azdora.core.domain.repository.GuestContactRepository;
+import com.orodent.azdora.core.domain.repository.GuestRepository;
+import com.orodent.azdora.core.domain.repository.OtaRepository;
+import com.orodent.azdora.core.domain.repository.ReservationRepository;
 
 import java.sql.Connection;
 

@@ -1,6 +1,6 @@
 package com.orodent.azdora.feature.reservation.view.partials;
 
-import com.orodent.azdora.core.database.model.Ota;
+import com.orodent.azdora.core.domain.model.Ota;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;

@@ -1,7 +1,7 @@
 package com.orodent.azdora.feature.reservation.view;
 
-import com.orodent.azdora.feature.reservation.ui.ReservationRow;
-import com.orodent.azdora.feature.reservation.view.partials.GuestSearchPane;
+import com.orodent.azdora.feature.reservation.view.model.ReservationRow;
+import com.orodent.azdora.feature.contact.view.GuestSearchPane;
 import com.orodent.azdora.feature.reservation.view.partials.ReservationFormPane;
 import com.orodent.azdora.feature.reservation.view.partials.ReservationSummaryPane;
 import javafx.geometry.Pos;

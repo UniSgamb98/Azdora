@@ -1,6 +1,6 @@
 package com.orodent.azdora.feature.contact;
 
-import com.orodent.azdora.core.database.model.ContactType;
+import com.orodent.azdora.core.domain.model.ContactType;
 import javafx.beans.property.*;
 
 public class GuestContactRow {
