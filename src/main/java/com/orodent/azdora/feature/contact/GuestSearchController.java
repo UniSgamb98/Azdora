@@ -90,6 +90,13 @@ public class GuestSearchController {
             });
         });
 
+        view.getSearchField().setOnAction(e -> {
+            if (guestList.size() == 1) {
+                view.getGuestList().getSelectionModel().select(0);
+                view.getGuestList().requestFocus();
+            }
+        });
+
         // aggiungi contatto
         view.getAddContactButton().setOnAction(e -> {
             Guest g = view.getGuestList().getSelectionModel().getSelectedItem();
