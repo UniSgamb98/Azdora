@@ -1,6 +1,6 @@
 package com.orodent.azdora.feature.reservation.view.model;
 
-import com.orodent.azdora.core.database.model.Ota;
+import com.orodent.azdora.core.domain.model.Ota;
 import javafx.beans.property.*;
 
 import java.math.BigDecimal;

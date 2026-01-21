@@ -1,6 +1,6 @@
 package com.orodent.azdora.feature.reservation.service.dto;
 
-import com.orodent.azdora.core.database.model.Ota;
+import com.orodent.azdora.core.domain.model.Ota;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

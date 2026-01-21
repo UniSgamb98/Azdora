@@ -1,9 +1,9 @@
 package com.orodent.azdora.feature.reservation.controller;
 
-import com.orodent.azdora.core.database.model.Ota;
+import com.orodent.azdora.core.domain.model.Ota;
 import com.orodent.azdora.feature.reservation.controller.table.DatePickerTableCell;
 import com.orodent.azdora.feature.reservation.service.ReservationService;
-import com.orodent.azdora.feature.reservation.ui.ReservationRow;
+import com.orodent.azdora.feature.reservation.view.model.ReservationRow;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
