@@ -84,7 +84,7 @@ public class ReservationMainController {
         return new ReservationRow(
                 d.id(),
                 d.guestFullName(),
-                d.otaName(),
+                d.ota(),
                 d.provenance(),
                 d.createdAt(),
                 d.checkIn(),

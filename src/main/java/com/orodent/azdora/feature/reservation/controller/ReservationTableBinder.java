@@ -1,10 +1,13 @@
 package com.orodent.azdora.feature.reservation.controller;
 
+import com.orodent.azdora.core.database.model.Ota;
 import com.orodent.azdora.feature.reservation.controller.table.DatePickerTableCell;
-import com.orodent.azdora.feature.reservation.ui.ReservationRow;
 import com.orodent.azdora.feature.reservation.service.ReservationService;
+import com.orodent.azdora.feature.reservation.ui.ReservationRow;
+import javafx.collections.FXCollections;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.BigDecimalStringConverter;
 import javafx.util.converter.IntegerStringConverter;
@@ -31,8 +34,25 @@ public class ReservationTableBinder {
         TableColumn<ReservationRow, String> guestCol = new TableColumn<>("Cliente");
         guestCol.setCellValueFactory(d -> d.getValue().guestProperty());
 
-        TableColumn<ReservationRow, String> otaCol = new TableColumn<>("OTA");
+        TableColumn<ReservationRow, Ota> otaCol = new TableColumn<>("OTA");
         otaCol.setCellValueFactory(d -> d.getValue().otaProperty());
+        otaCol.setCellFactory(ComboBoxTableCell.forTableColumn(
+                FXCollections.observableArrayList(service.loadOtas())
+        ));
+        otaCol.setOnEditCommit(event -> {
+            ReservationRow row = event.getRowValue();
+            Ota oldValue = event.getOldValue();
+            Ota newValue = event.getNewValue();
+
+            try {
+                row.setOta(newValue);
+                service.updateOta(row.getId(), newValue);
+            } catch (Exception ex) {
+                row.setOta(oldValue);
+                table.refresh();
+                onError.accept(ex.getMessage());
+            }
+        });
 
         TableColumn<ReservationRow, LocalDate> prenotCol = new TableColumn<>("Prenotato il");
         prenotCol.setCellValueFactory(d -> d.getValue().prenotProperty());

@@ -56,11 +56,13 @@ public class GuestSearchController {
         // selezione guest -> carica notes + contatti
         view.getGuestList().getSelectionModel().selectedItemProperty().addListener((obs, old, g) -> {
             if (g == null) {
+                setDetailsVisible(false);
                 view.getNotesArea().clear();
                 contactRows.clear();
                 return;
             }
 
+            setDetailsVisible(true);
             view.getNotesArea().setText(g.notes() == null ? "" : g.notes());
             loadContacts(g.id());
 
@@ -90,6 +92,13 @@ public class GuestSearchController {
             });
         });
 
+        view.getSearchField().setOnAction(e -> {
+            if (guestList.size() == 1) {
+                view.getGuestList().getSelectionModel().select(0);
+                view.getGuestList().requestFocus();
+            }
+        });
+
         // aggiungi contatto
         view.getAddContactButton().setOnAction(e -> {
             Guest g = view.getGuestList().getSelectionModel().getSelectedItem();
@@ -112,6 +121,8 @@ public class GuestSearchController {
             contactService.delete(sel.getId());
             contactRows.remove(sel);
         });
+
+        setDetailsVisible(false);
     }
 
     private void initContactsTable() {
@@ -161,5 +172,22 @@ public class GuestSearchController {
                         .map(c -> new GuestContactRow(c.id(), c.contactType(), c.contactValue()))
                         .toList()
         );
+    }
+
+    private void setDetailsVisible(boolean visible) {
+        view.getNotesLabel().setVisible(visible);
+        view.getNotesLabel().setManaged(visible);
+        view.getNotesArea().setVisible(visible);
+        view.getNotesArea().setManaged(visible);
+        view.getSaveNotesButton().setVisible(visible);
+        view.getSaveNotesButton().setManaged(visible);
+        view.getContactsLabel().setVisible(visible);
+        view.getContactsLabel().setManaged(visible);
+        view.getContactsTable().setVisible(visible);
+        view.getContactsTable().setManaged(visible);
+        view.getAddContactButton().setVisible(visible);
+        view.getAddContactButton().setManaged(visible);
+        view.getRemoveContactButton().setVisible(visible);
+        view.getRemoveContactButton().setManaged(visible);
     }
 }

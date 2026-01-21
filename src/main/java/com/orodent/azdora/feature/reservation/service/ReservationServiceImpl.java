@@ -47,7 +47,7 @@ public class ReservationServiceImpl implements ReservationService {
             out.add(new ReservationRowData(
                     r.id(),
                     g.firstName() + " " + g.lastName(),
-                    o.name(),
+                    o,
                     r.provenance(),
                     r.createdAt(),
                     r.checkIn(),
@@ -114,6 +114,14 @@ public class ReservationServiceImpl implements ReservationService {
     public void updateProvenance(long reservationId, String provenance) {
         if (provenance == null) provenance = "";
         reservationRepo.updateProvenance(reservationId, provenance);
+    }
+
+    @Override
+    public void updateOta(long reservationId, Ota ota) {
+        if (ota == null || ota.id() == null || ota.id() <= 0) {
+            throw new ValidationException("OTA non valida");
+        }
+        reservationRepo.updateOta(reservationId, ota.id());
     }
 
     @Override
