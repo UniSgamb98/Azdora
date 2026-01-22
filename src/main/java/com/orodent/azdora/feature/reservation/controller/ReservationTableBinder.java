@@ -39,7 +39,19 @@ public class ReservationTableBinder {
         table.setEditable(true);
         table.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.TAB) {
-                handleTabNavigation(table);
+                handleHorizontalNavigation(table, 1);
+                event.consume();
+            } else if (event.getCode() == KeyCode.RIGHT) {
+                handleHorizontalNavigation(table, 1);
+                event.consume();
+            } else if (event.getCode() == KeyCode.LEFT) {
+                handleHorizontalNavigation(table, -1);
+                event.consume();
+            } else if (event.getCode() == KeyCode.UP) {
+                handleVerticalNavigation(table, -1);
+                event.consume();
+            } else if (event.getCode() == KeyCode.DOWN) {
+                handleVerticalNavigation(table, 1);
                 event.consume();
             }
         });
@@ -288,7 +300,7 @@ public class ReservationTableBinder {
         return row != null && row.getId() <= 0;
     }
 
-    private void handleTabNavigation(TableView<ReservationRow> table) {
+    private void handleHorizontalNavigation(TableView<ReservationRow> table, int direction) {
         TablePosition<ReservationRow, ?> position = table.getEditingCell();
         if (position == null) {
             position = table.getFocusModel().getFocusedCell();
@@ -311,7 +323,7 @@ public class ReservationTableBinder {
         int nextColumnIndex = columnIndex;
         TableColumn<ReservationRow, ?> nextColumn = null;
         for (int i = 0; i < columns.size(); i++) {
-            nextColumnIndex = (nextColumnIndex + 1) % columns.size();
+            nextColumnIndex = (nextColumnIndex + direction + columns.size()) % columns.size();
             TableColumn<ReservationRow, ?> candidate = columns.get(nextColumnIndex);
             if (candidate.isEditable()) {
                 nextColumn = candidate;
@@ -323,6 +335,31 @@ public class ReservationTableBinder {
         }
         table.getSelectionModel().clearAndSelect(rowIndex, nextColumn);
         table.edit(rowIndex, nextColumn);
+    }
+
+    private void handleVerticalNavigation(TableView<ReservationRow> table, int direction) {
+        TablePosition<ReservationRow, ?> position = table.getEditingCell();
+        if (position == null) {
+            position = table.getFocusModel().getFocusedCell();
+        }
+        if (position == null) {
+            return;
+        }
+
+        if (table.getEditingCell() != null && !commitEditingCell(table, position)) {
+            return;
+        }
+
+        int rowIndex = position.getRow() + direction;
+        if (rowIndex < 0 || rowIndex >= table.getItems().size()) {
+            return;
+        }
+
+        TableColumn<ReservationRow, ?> column = position.getTableColumn();
+        table.getSelectionModel().clearAndSelect(rowIndex, column);
+        if (column != null && column.isEditable()) {
+            table.edit(rowIndex, column);
+        }
     }
 
     private boolean commitEditingCell(TableView<ReservationRow> table, TablePosition<ReservationRow, ?> position) {
