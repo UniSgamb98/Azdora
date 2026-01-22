@@ -22,11 +22,11 @@ public class DatePickerTableCell extends TableCell<ReservationRow, LocalDate> {
     protected void updateItem(LocalDate value, boolean empty) {
         super.updateItem(value, empty);
 
-        if (empty || value == null) {
+        if (empty) {
             setText(null);
             setGraphic(null);
         } else {
-            setText(value.toString());
+            setText(value == null ? "" : value.toString());
             datePicker.setValue(value);
             setGraphic(datePicker);
             setContentDisplay(ContentDisplay.TEXT_ONLY);
