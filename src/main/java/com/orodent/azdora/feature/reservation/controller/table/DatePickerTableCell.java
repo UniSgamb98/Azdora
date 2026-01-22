@@ -6,9 +6,11 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableCell;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class DatePickerTableCell extends TableCell<ReservationRow, LocalDate> {
 
+    private static final DateTimeFormatter DISPLAY_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final DatePicker datePicker = new DatePicker();
 
     public DatePickerTableCell() {
@@ -26,7 +28,7 @@ public class DatePickerTableCell extends TableCell<ReservationRow, LocalDate> {
             setText(null);
             setGraphic(null);
         } else {
-            setText(value == null ? "" : value.toString());
+            setText(value == null ? "" : value.format(DISPLAY_FORMAT));
             datePicker.setValue(value);
             setGraphic(datePicker);
             setContentDisplay(ContentDisplay.TEXT_ONLY);
