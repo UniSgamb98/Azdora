@@ -6,9 +6,12 @@ import com.orodent.azdora.feature.reservation.service.ReservationService;
 import com.orodent.azdora.feature.reservation.view.model.ReservationRow;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.util.converter.BigDecimalStringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
@@ -30,9 +33,29 @@ public class ReservationTableBinder {
 
     public void bind(TableView<ReservationRow> table) {
         table.setEditable(true);
+        table.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                handleTabNavigation(table);
+                event.consume();
+            }
+        });
 
         TableColumn<ReservationRow, String> guestCol = new TableColumn<>("Cliente");
         guestCol.setCellValueFactory(d -> d.getValue().guestProperty());
+        guestCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        guestCol.setOnEditCommit(event -> {
+            ReservationRow row = event.getRowValue();
+            String oldValue = event.getOldValue();
+            String newValue = event.getNewValue();
+
+            if (isNewRow(row)) {
+                row.setGuestName(newValue);
+                return;
+            }
+
+            row.setGuestName(oldValue);
+            table.refresh();
+        });
 
         TableColumn<ReservationRow, Ota> otaCol = new TableColumn<>("OTA");
         otaCol.setCellValueFactory(d -> d.getValue().otaProperty());
@@ -46,7 +69,9 @@ public class ReservationTableBinder {
 
             try {
                 row.setOta(newValue);
-                service.updateOta(row.getId(), newValue);
+                if (!isNewRow(row)) {
+                    service.updateOta(row.getId(), newValue);
+                }
             } catch (Exception ex) {
                 row.setOta(oldValue);
                 table.refresh();
@@ -56,6 +81,20 @@ public class ReservationTableBinder {
 
         TableColumn<ReservationRow, LocalDate> prenotCol = new TableColumn<>("Prenotato il");
         prenotCol.setCellValueFactory(d -> d.getValue().prenotProperty());
+        prenotCol.setCellFactory(col -> new DatePickerTableCell());
+        prenotCol.setOnEditCommit(event -> {
+            ReservationRow row = event.getRowValue();
+            LocalDate oldValue = event.getOldValue();
+            LocalDate newValue = event.getNewValue();
+
+            if (isNewRow(row)) {
+                row.setPrenotatoIl(newValue);
+                return;
+            }
+
+            row.setPrenotatoIl(oldValue);
+            table.refresh();
+        });
 
         TableColumn<ReservationRow, String> provenanceCol = new TableColumn<>("Provenienza");
         provenanceCol.setCellValueFactory(d -> d.getValue().provenanceProperty());
@@ -67,7 +106,9 @@ public class ReservationTableBinder {
 
             try {
                 row.setProvenance(newValue);
-                service.updateProvenance(row.getId(), newValue);
+                if (!isNewRow(row)) {
+                    service.updateProvenance(row.getId(), newValue);
+                }
             } catch (Exception ex) {
                 row.setProvenance(oldValue);
                 table.refresh();
@@ -85,7 +126,9 @@ public class ReservationTableBinder {
 
             try {
                 row.setNotes(newValue);
-                service.updateNotes(row.getId(), newValue);
+                if (!isNewRow(row)) {
+                    service.updateNotes(row.getId(), newValue);
+                }
             } catch (Exception ex) {
                 row.setNotes(oldValue);
                 table.refresh();
@@ -95,6 +138,7 @@ public class ReservationTableBinder {
 
         TableColumn<ReservationRow, Long> nightsCol = new TableColumn<>("notti");
         nightsCol.setCellValueFactory(d -> d.getValue().nightsCountProperty().asObject());
+        nightsCol.setEditable(false);
 
         TableColumn<ReservationRow, LocalDate> inCol = new TableColumn<>("Check-in");
         inCol.setCellValueFactory(d -> d.getValue().checkInProperty());
@@ -106,7 +150,9 @@ public class ReservationTableBinder {
 
             try {
                 row.setCheckIn(newValue);
-                service.updateDates(row.getId(), row.getCheckIn(), row.getCheckOut());
+                if (!isNewRow(row)) {
+                    service.updateDates(row.getId(), row.getCheckIn(), row.getCheckOut());
+                }
             } catch (Exception ex) {
                 row.setCheckIn(oldValue);
                 table.refresh();
@@ -124,7 +170,9 @@ public class ReservationTableBinder {
 
             try {
                 row.setCheckOut(newValue);
-                service.updateDates(row.getId(), row.getCheckIn(), row.getCheckOut());
+                if (!isNewRow(row)) {
+                    service.updateDates(row.getId(), row.getCheckIn(), row.getCheckOut());
+                }
             } catch (Exception ex) {
                 row.setCheckOut(oldValue);
                 table.refresh();
@@ -134,7 +182,16 @@ public class ReservationTableBinder {
 
         TableColumn<ReservationRow, Integer> adultGuestsCol = new TableColumn<>("Adulti");
         adultGuestsCol.setCellValueFactory(d -> d.getValue().adultGuestsProperty().asObject());
-        adultGuestsCol.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
+        adultGuestsCol.setCellFactory(col -> new TextFieldTableCell<>(new IntegerStringConverter()) {
+            @Override
+            public void updateItem(Integer value, boolean empty) {
+                super.updateItem(value, empty);
+                ReservationRow row = getTableRow() != null ? getTableRow().getItem() : null;
+                if (!empty && row != null && isNewRow(row) && value != null && value == 0) {
+                    setText("");
+                }
+            }
+        });
         adultGuestsCol.setOnEditCommit(event -> {
             ReservationRow row = event.getRowValue();
             Integer oldValue = event.getOldValue();
@@ -142,7 +199,9 @@ public class ReservationTableBinder {
 
             try {
                 row.setAdultGuestsCount(newValue);
-                service.updateAdultGuests(row.getId(), newValue);
+                if (!isNewRow(row)) {
+                    service.updateAdultGuests(row.getId(), newValue);
+                }
             } catch (Exception ex) {
                 row.setAdultGuestsCount(oldValue);
                 table.refresh();
@@ -152,7 +211,16 @@ public class ReservationTableBinder {
 
         TableColumn<ReservationRow, Integer> childGuestsCol = new TableColumn<>("Bambini");
         childGuestsCol.setCellValueFactory(d -> d.getValue().childGuestsProperty().asObject());
-        childGuestsCol.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
+        childGuestsCol.setCellFactory(col -> new TextFieldTableCell<>(new IntegerStringConverter()) {
+            @Override
+            public void updateItem(Integer value, boolean empty) {
+                super.updateItem(value, empty);
+                ReservationRow row = getTableRow() != null ? getTableRow().getItem() : null;
+                if (!empty && row != null && isNewRow(row) && value != null && value == 0) {
+                    setText("");
+                }
+            }
+        });
         childGuestsCol.setOnEditCommit(event -> {
             ReservationRow row = event.getRowValue();
             Integer oldValue = event.getOldValue();
@@ -160,7 +228,9 @@ public class ReservationTableBinder {
 
             try {
                 row.setChildGuestsCount(newValue);
-                service.updateChildGuests(row.getId(), newValue);
+                if (!isNewRow(row)) {
+                    service.updateChildGuests(row.getId(), newValue);
+                }
             } catch (Exception ex) {
                 row.setChildGuestsCount(oldValue);
                 table.refresh();
@@ -193,7 +263,9 @@ public class ReservationTableBinder {
 
             try {
                 row.setAmount(newValue);
-                service.updateAmount(row.getId(), newValue);
+                if (!isNewRow(row)) {
+                    service.updateAmount(row.getId(), newValue);
+                }
             } catch (Exception ex) {
                 row.setAmount(oldValue);
                 table.refresh();
@@ -206,5 +278,42 @@ public class ReservationTableBinder {
                 inCol, outCol, nightsCol,
                 adultGuestsCol, childGuestsCol, amountCol, notesCol
         );
+    }
+
+    private boolean isNewRow(ReservationRow row) {
+        return row != null && row.getId() <= 0;
+    }
+
+    private void handleTabNavigation(TableView<ReservationRow> table) {
+        TablePosition<ReservationRow, ?> position = table.getEditingCell();
+        if (position == null) {
+            position = table.getFocusModel().getFocusedCell();
+        }
+        if (position == null) {
+            return;
+        }
+
+        int rowIndex = position.getRow();
+        var columns = table.getVisibleLeafColumns();
+        int columnIndex = table.getVisibleLeafIndex(position.getTableColumn());
+        if (columns.isEmpty() || columnIndex < 0) {
+            return;
+        }
+
+        int nextColumnIndex = columnIndex;
+        TableColumn<ReservationRow, ?> nextColumn = null;
+        for (int i = 0; i < columns.size(); i++) {
+            nextColumnIndex = (nextColumnIndex + 1) % columns.size();
+            TableColumn<ReservationRow, ?> candidate = columns.get(nextColumnIndex);
+            if (candidate.isEditable()) {
+                nextColumn = candidate;
+                break;
+            }
+        }
+        if (nextColumn == null) {
+            return;
+        }
+        table.getSelectionModel().clearAndSelect(rowIndex, nextColumn);
+        table.edit(rowIndex, nextColumn);
     }
 }

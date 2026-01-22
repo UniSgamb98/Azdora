@@ -1,11 +1,11 @@
 package com.orodent.azdora.feature.reservation.controller;
 
 import com.orodent.azdora.core.persistence.database.TransactionManager;
-import com.orodent.azdora.core.domain.model.Ota;
 import com.orodent.azdora.core.domain.repository.GuestContactRepository;
 import com.orodent.azdora.core.domain.repository.GuestRepository;
 import com.orodent.azdora.core.domain.repository.OtaRepository;
 import com.orodent.azdora.core.domain.repository.ReservationRepository;
+import com.orodent.azdora.core.domain.model.Ota;
 import com.orodent.azdora.feature.contact.service.GuestContactService;
 import com.orodent.azdora.feature.contact.controller.GuestSearchController;
 import com.orodent.azdora.feature.contact.service.GuestService;
@@ -23,7 +23,6 @@ import javafx.scene.control.Alert;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 public class ReservationMainController {
 
@@ -34,6 +33,7 @@ public class ReservationMainController {
     private final GuestSearchController guestSearchController;
 
     private final ObservableList<ReservationRow> rows = FXCollections.observableArrayList();
+    private ReservationRow newRow;
 
     public ReservationMainController(
             ReservationMainView view,
@@ -59,14 +59,15 @@ public class ReservationMainController {
         view.getTable().setItems(rows);
 
         // GuestSearchField
-        guestSearchController.setOnGuestSelected(g -> view.getFormPane().getGuestField().setText(g.firstName() + " " + g.lastName()));
+        guestSearchController.setOnGuestSelected(g -> {
+            if (newRow != null) {
+                newRow.setGuestName(g.firstName() + " " + g.lastName());
+                view.getTable().refresh();
+            }
+        });
 
-        // Combo OTA
-        List<Ota> otas = service.loadOtas();
-        view.getFormPane().getOtaBox().setItems(FXCollections.observableArrayList(otas));
-
-        // Bottone salva
-        view.getFormPane().getSaveButton().setOnAction(e -> saveReservation());
+        view.getAddReservationButton().setOnAction(e -> saveNewReservation());
+        view.getCancelReservationButton().setOnAction(e -> resetNewReservationRow());
 
         // Dati iniziali
         reloadTable();
@@ -79,6 +80,10 @@ public class ReservationMainController {
                         .map(this::toRow)
                         .toList()
         );
+        newRow = createEmptyRow();
+        rows.add(newRow);
+        attachNewRowListeners(newRow);
+        updateNewReservationActions();
     }
 
     private ReservationRow toRow(ReservationRowData d) {
@@ -98,28 +103,41 @@ public class ReservationMainController {
         );
     }
 
-    private void saveReservation() {
-        var form = view.getFormPane();
+    private ReservationRow createEmptyRow() {
+        return new ReservationRow(
+                0L,
+                "",
+                null,
+                "",
+                "",
+                null,
+                null,
+                null,
+                0L,
+                0,
+                0,
+                null
+        );
+    }
 
+    private void saveNewReservation() {
         try {
-            String guestText = form.getGuestField().getText();
-            Ota ota = form.getOtaBox().getValue();
-            LocalDate checkIn = form.getCheckInPicker().getValue();
-            LocalDate checkOut = form.getCheckOutPicker().getValue();
-            LocalDate createdAt = form.getCreatedAtPicker().getValue();
+            if (newRow == null) {
+                return;
+            }
 
-            String adultGuestsText = form.getAdultGuestsCountField().getText();
-            String childGuestsText = form.getChildGuestsCountField().getText();
-            String provenance = form.getProvenanceField().getText();
-            String notes = form.getNotesArea().getText();
-            String amountText = form.getAmount().getText();
-
-            int adultGuests = parseIntStrict(adultGuestsText, "Numero adulti non valido", true);
-            int childGuests = parseIntStrict(childGuestsText, "Numero bambini non valido", false);
-            BigDecimal amount = parseBigDecimal(amountText);
+            String guestText = newRow.guestProperty().get();
+            Ota ota = newRow.otaProperty().get();
+            LocalDate checkIn = newRow.checkInProperty().get();
+            LocalDate checkOut = newRow.checkOutProperty().get();
+            LocalDate createdAt = newRow.prenotProperty().get();
+            int adultGuests = newRow.adultGuestsProperty().get();
+            int childGuests = newRow.childGuestsProperty().get();
+            BigDecimal amount = newRow.amountProperty().get();
+            String provenance = newRow.provenanceProperty().get();
+            String notes = newRow.notesProperty().get();
 
             long otaId = (ota != null && ota.id() != null) ? ota.id() : 0L;
-
             CreateReservationCommand cmd = new CreateReservationCommand(
                     guestText,
                     otaId,
@@ -136,37 +154,74 @@ public class ReservationMainController {
             service.createReservation(cmd);
 
             reloadTable();
-            view.getFormPane().clear();
-
-
-        } catch (IllegalArgumentException ex) {
-            showError(ex.getMessage());
         } catch (Exception ex) {
             showError("Errore durante il salvataggio: " + ex.getMessage());
         }
     }
 
-    private int parseIntStrict(String text, String errorMessage, boolean mustBePositive) {
-        if (text == null) throw new IllegalArgumentException(errorMessage);
-        try {
-            int v = Integer.parseInt(text.trim());
-            if (mustBePositive && v <= 0) throw new IllegalArgumentException(errorMessage);
-            if (!mustBePositive && v < 0) throw new IllegalArgumentException(errorMessage);
-            return v;
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException(errorMessage);
+    private void resetNewReservationRow() {
+        if (newRow == null) {
+            return;
         }
+        newRow.setGuestName("");
+        newRow.setOta(null);
+        newRow.setProvenance("");
+        newRow.setNotes("");
+        newRow.setPrenotatoIl(null);
+        newRow.setCheckIn(null);
+        newRow.setCheckOut(null);
+        newRow.setAdultGuestsCount(0);
+        newRow.setChildGuestsCount(0);
+        newRow.setAmount(null);
+        view.getTable().refresh();
+        updateNewReservationActions();
     }
 
-    private BigDecimal parseBigDecimal(String text) {
-        if (text == null) throw new IllegalArgumentException("Importo non valido");
-        try {
-            BigDecimal v = new BigDecimal(text.trim());
-            if (v.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Importo non valido");
-            return v;
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("Importo non valido");
+    private void attachNewRowListeners(ReservationRow row) {
+        row.guestProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+        row.otaProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+        row.provenanceProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+        row.notesProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+        row.prenotProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+        row.checkInProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+        row.checkOutProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+        row.adultGuestsProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+        row.childGuestsProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+        row.amountProperty().addListener((obs, oldValue, newValue) -> updateNewReservationActions());
+    }
+
+    private void updateNewReservationActions() {
+        boolean hasData = hasNewReservationData();
+        view.getNewReservationActions().setVisible(hasData);
+        view.getNewReservationActions().setManaged(hasData);
+    }
+
+    private boolean hasNewReservationData() {
+        if (newRow == null) {
+            return false;
         }
+        if (newRow.guestProperty().get() != null && !newRow.guestProperty().get().isBlank()) {
+            return true;
+        }
+        if (newRow.otaProperty().get() != null) {
+            return true;
+        }
+        if (newRow.provenanceProperty().get() != null && !newRow.provenanceProperty().get().isBlank()) {
+            return true;
+        }
+        if (newRow.notesProperty().get() != null && !newRow.notesProperty().get().isBlank()) {
+            return true;
+        }
+        if (newRow.prenotProperty().get() != null) {
+            return true;
+        }
+        if (newRow.checkInProperty().get() != null || newRow.checkOutProperty().get() != null) {
+            return true;
+        }
+        if (newRow.adultGuestsProperty().get() > 0 || newRow.childGuestsProperty().get() > 0) {
+            return true;
+        }
+        return newRow.amountProperty().get() != null;
     }
 
     private void showError(String message) {

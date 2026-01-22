@@ -69,18 +69,30 @@ public class ReservationRow {
     public void setProvenance(String newProvenance) { provenance.set(newProvenance); }
     public void setNotes(String newNotes) { notes.set(newNotes); }
     public void setOta(Ota newOta) { ota.set(newOta); }
+    public void setGuestName(String newGuestName) { guestName.set(newGuestName); }
+    public void setPrenotatoIl(LocalDate newPrenotatoIl) { prenotatoIl.set(newPrenotatoIl); }
     public void setAdultGuestsCount(int newAdultGuestsCount) { adultGuestsCount.set(newAdultGuestsCount); }
     public void setChildGuestsCount(int newChildGuestsCount) { childGuestsCount.set(newChildGuestsCount); }
     public void setAmount(BigDecimal newAmount) { amount.set(newAmount); }
     public void setCheckIn(LocalDate newCheckIn) {
         checkInProperty().set(newCheckIn);
-        nightsCount.set(ChronoUnit.DAYS.between(newCheckIn, checkOut.get()));
+        updateNightsCount();
     }
     public void setCheckOut(LocalDate newCheckOut) {
         checkOut.set(newCheckOut);
-        nightsCount.set(ChronoUnit.DAYS.between(checkIn.get(), newCheckOut));
+        updateNightsCount();
     }
 
     public LocalDate getCheckOut() { return checkOut.get(); }
     public LocalDate getCheckIn() { return checkIn.get(); }
+
+    private void updateNightsCount() {
+        LocalDate start = checkIn.get();
+        LocalDate end = checkOut.get();
+        if (start == null || end == null) {
+            nightsCount.set(0);
+            return;
+        }
+        nightsCount.set(ChronoUnit.DAYS.between(start, end));
+    }
 }
