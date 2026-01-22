@@ -37,6 +37,7 @@ public class ReservationTableBinder {
 
     public void bind(TableView<ReservationRow> table) {
         table.setEditable(true);
+        table.getSelectionModel().setCellSelectionEnabled(true);
         table.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.TAB) {
                 handleHorizontalNavigation(table, 1);
@@ -333,8 +334,7 @@ public class ReservationTableBinder {
         if (nextColumn == null) {
             return;
         }
-        table.getSelectionModel().clearAndSelect(rowIndex, nextColumn);
-        table.edit(rowIndex, nextColumn);
+        selectAndEdit(table, rowIndex, nextColumn);
     }
 
     private void handleVerticalNavigation(TableView<ReservationRow> table, int direction) {
@@ -355,8 +355,42 @@ public class ReservationTableBinder {
             return;
         }
 
-        TableColumn<ReservationRow, ?> column = position.getTableColumn();
+        TableColumn<ReservationRow, ?> column = resolveEditableColumn(table, position.getTableColumn());
+        if (column == null) {
+            return;
+        }
+        selectAndEdit(table, rowIndex, column);
+    }
+
+    private TableColumn<ReservationRow, ?> resolveEditableColumn(
+            TableView<ReservationRow> table,
+            TableColumn<ReservationRow, ?> preferred
+    ) {
+        var columns = table.getVisibleLeafColumns();
+        if (columns.isEmpty()) {
+            return null;
+        }
+
+        int startIndex = preferred == null ? -1 : table.getVisibleLeafIndex(preferred);
+        if (startIndex >= 0 && columns.get(startIndex).isEditable()) {
+            return columns.get(startIndex);
+        }
+
+        for (TableColumn<ReservationRow, ?> candidate : columns) {
+            if (candidate.isEditable()) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private void selectAndEdit(
+            TableView<ReservationRow> table,
+            int rowIndex,
+            TableColumn<ReservationRow, ?> column
+    ) {
         table.getSelectionModel().clearAndSelect(rowIndex, column);
+        table.getFocusModel().focus(rowIndex, column);
         if (column != null && column.isEditable()) {
             table.edit(rowIndex, column);
         }
