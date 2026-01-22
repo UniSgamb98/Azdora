@@ -391,6 +391,10 @@ public class ReservationTableBinder {
                     newValue = text == null ? "" : text;
                 }
             } else if (graphic instanceof DatePicker datePicker) {
+                String editorText = datePicker.getEditor() != null ? datePicker.getEditor().getText() : null;
+                if (editorText != null && !editorText.isBlank()) {
+                    datePicker.setValue(DatePickerTableCell.parseDateInput(editorText));
+                }
                 newValue = datePicker.getValue();
             } else if (graphic instanceof ComboBox<?> comboBox) {
                 newValue = comboBox.getValue();

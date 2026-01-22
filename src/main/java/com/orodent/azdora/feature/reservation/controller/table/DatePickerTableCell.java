@@ -20,6 +20,45 @@ public class DatePickerTableCell extends TableCell<ReservationRow, LocalDate> {
         setContentDisplay(ContentDisplay.TEXT_ONLY);
     }
 
+    public static LocalDate parseDateInput(String text) {
+        if (text == null) {
+            return null;
+        }
+        String digits = text.replaceAll("\\D", "");
+        if (digits.isEmpty()) {
+            return null;
+        }
+
+        if (digits.length() > 6) {
+            digits = digits.substring(0, 6);
+        }
+
+        LocalDate now = LocalDate.now();
+        int day;
+        int month = now.getMonthValue();
+        int year = now.getYear() % 100;
+
+        if (digits.length() >= 2) {
+            day = Integer.parseInt(digits.substring(0, 2));
+        } else {
+            day = Integer.parseInt(digits);
+        }
+
+        if (digits.length() >= 4) {
+            month = Integer.parseInt(digits.substring(2, 4));
+        } else if (digits.length() == 3) {
+            month = Integer.parseInt(digits.substring(2, 3));
+        }
+
+        if (digits.length() >= 6) {
+            year = Integer.parseInt(digits.substring(4, 6));
+        } else if (digits.length() == 5) {
+            year = Integer.parseInt(digits.substring(4, 5));
+        }
+
+        return LocalDate.of(2000 + year, month, day);
+    }
+
     @Override
     protected void updateItem(LocalDate value, boolean empty) {
         super.updateItem(value, empty);
