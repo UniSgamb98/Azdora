@@ -417,12 +417,14 @@ public class ReservationTableBinder {
         try {
             if (graphic instanceof TextField textField) {
                 String text = textField.getText();
-                if (item instanceof Integer) {
-                    newValue = text == null || text.trim().isEmpty() ? item : Integer.valueOf(text.trim());
+                if (text == null || text.trim().isEmpty()) {
+                    newValue = null;
+                } else if (item instanceof Integer) {
+                    newValue = Integer.valueOf(text.trim());
                 } else if (item instanceof BigDecimal) {
-                    newValue = text == null || text.trim().isEmpty() ? item : new BigDecimal(text.trim());
+                    newValue = new BigDecimal(text.trim());
                 } else {
-                    newValue = text == null ? "" : text;
+                    newValue = text;
                 }
             } else if (graphic instanceof DatePicker datePicker) {
                 String editorText = datePicker.getEditor() != null ? datePicker.getEditor().getText() : null;
