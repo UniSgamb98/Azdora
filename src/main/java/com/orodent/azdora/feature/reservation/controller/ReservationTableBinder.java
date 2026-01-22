@@ -5,13 +5,17 @@ import com.orodent.azdora.feature.reservation.controller.table.DatePickerTableCe
 import com.orodent.azdora.feature.reservation.service.ReservationService;
 import com.orodent.azdora.feature.reservation.view.model.ReservationRow;
 import javafx.collections.FXCollections;
+import javafx.scene.AccessibleAttribute;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.control.DatePicker;
 import javafx.util.converter.BigDecimalStringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
@@ -293,6 +297,10 @@ public class ReservationTableBinder {
             return;
         }
 
+        if (table.getEditingCell() != null && !commitEditingCell(table, position)) {
+            return;
+        }
+
         int rowIndex = position.getRow();
         var columns = table.getVisibleLeafColumns();
         int columnIndex = table.getVisibleLeafIndex(position.getTableColumn());
@@ -315,5 +323,49 @@ public class ReservationTableBinder {
         }
         table.getSelectionModel().clearAndSelect(rowIndex, nextColumn);
         table.edit(rowIndex, nextColumn);
+    }
+
+    private boolean commitEditingCell(TableView<ReservationRow> table, TablePosition<ReservationRow, ?> position) {
+        Object cell = table.queryAccessibleAttribute(
+                AccessibleAttribute.CELL_AT_ROW_COLUMN,
+                position.getRow(),
+                table.getVisibleLeafIndex(position.getTableColumn())
+        );
+        if (!(cell instanceof javafx.scene.control.TableCell<?, ?> tableCell)) {
+            return true;
+        }
+
+        if (!tableCell.isEditing()) {
+            return true;
+        }
+
+        Object newValue = null;
+        Object item = tableCell.getItem();
+        var graphic = tableCell.getGraphic();
+
+        try {
+            if (graphic instanceof TextField textField) {
+                String text = textField.getText();
+                if (item instanceof Integer) {
+                    newValue = text == null || text.trim().isEmpty() ? item : Integer.valueOf(text.trim());
+                } else if (item instanceof BigDecimal) {
+                    newValue = text == null || text.trim().isEmpty() ? item : new BigDecimal(text.trim());
+                } else {
+                    newValue = text == null ? "" : text;
+                }
+            } else if (graphic instanceof DatePicker datePicker) {
+                newValue = datePicker.getValue();
+            } else if (graphic instanceof ComboBox<?> comboBox) {
+                newValue = comboBox.getValue();
+            } else {
+                newValue = item;
+            }
+        } catch (RuntimeException ex) {
+            onError.accept("Valore non valido");
+            return false;
+        }
+
+        ((javafx.scene.control.TableCell<Object, Object>) tableCell).commitEdit(newValue);
+        return true;
     }
 }
